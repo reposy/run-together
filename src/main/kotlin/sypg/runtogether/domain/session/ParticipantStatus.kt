@@ -1,4 +1,8 @@
 package sypg.runtogether.domain.session
 
-class ParticipantStatus {
+enum class ParticipantStatus {
+    JOINED,
+    RUNNING,
+    LEFT,
+    FINISHED,
 }

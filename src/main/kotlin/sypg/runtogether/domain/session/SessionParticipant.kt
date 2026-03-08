@@ -1,4 +1,13 @@
 package sypg.runtogether.domain.session
 
-class SessionParticipant {
+import java.time.LocalDateTime
+
+class SessionParticipant (
+    val id: Long,
+    val sessionId: Long,
+    val runnerId: Long,
+    val status: ParticipantStatus,
+    val joinedAt: LocalDateTime,
+) {
+
 }
