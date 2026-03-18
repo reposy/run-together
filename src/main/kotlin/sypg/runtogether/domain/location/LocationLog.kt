@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class LocationLog (
     val id: Long,
-    val runnerId: Long,
+    val userId: Long,
     val sessionId: Long,
     val latitude: Double,
     val longitude: Double,

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 class SessionParticipant (
     val id: Long,
     val sessionId: Long,
-    val runnerId: Long,
+    val userId: Long,
     val status: ParticipantStatus,
     val joinedAt: LocalDateTime,
 ) {
