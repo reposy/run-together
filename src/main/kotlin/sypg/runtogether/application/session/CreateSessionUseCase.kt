@@ -32,11 +32,11 @@ class CreateSessionUseCase(
         createdBy: Long? = null
     ): Long {
         // 시간 검증
-        require(startAt.isAfter(LocalDateTime.now())) { 
-            "Start time must be in the future" 
+        require(!startAt.isBefore(LocalDateTime.now().minusMinutes(1))) {
+            "Start time must be in the present or future"
         }
-        require(endAt.isAfter(startAt)) { 
-            "End time must be after start time" 
+        require(endAt.isAfter(startAt)) {
+            "End time must be after start time"
         }
 
         // 세션 생성
