@@ -16,8 +16,29 @@ class SessionController(
     private val recordLocationUseCase: RecordLocationUseCase,
     private val finishRunningUseCase: FinishRunningUseCase,
     private val getMyStatsUseCase: GetMyStatsUseCase,
-    private val getSessionRankingUseCase: GetSessionRankingUseCase
+    private val getSessionRankingUseCase: GetSessionRankingUseCase,
+    private val getActiveSessionUseCase: GetActiveSessionUseCase
 ) {
+
+    /**
+     * 현재 활성 세션 조회
+     * GET /api/sessions/active
+     */
+    @GetMapping("/active")
+    fun getActiveSession(): ResponseEntity<SessionResponse> {
+        val result = getActiveSessionUseCase.execute()
+            ?: return ResponseEntity.noContent().build()
+
+        return ResponseEntity.ok(
+            SessionResponse(
+                id = result.session.id,
+                status = result.session.status.name,
+                startAt = result.session.startAt,
+                endAt = result.session.endAt,
+                participantCount = result.participantCount
+            )
+        )
+    }
 
     /**
      * 세션 참가

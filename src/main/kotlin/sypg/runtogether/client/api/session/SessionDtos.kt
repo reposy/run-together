@@ -80,3 +80,14 @@ data class SessionRankingResponse(
     val myStats: MyStatsResponse?,
     val topRanking: List<RankingEntry>
 )
+
+/**
+ * 세션 정보 응답
+ */
+data class SessionResponse(
+    val id: Long,
+    val status: String,
+    val startAt: LocalDateTime,
+    val endAt: LocalDateTime,
+    val participantCount: Int
+)
