@@ -39,18 +39,20 @@ class SessionScheduler(
     }
 
     /**
-     * 테스트용: 애플리케이션 시작 후 10초 뒤에 세션 생성
+     * 테스트용: 애플리케이션 시작 직후 세션 생성 (1분 뒤 시작)
      *
      * 개발/테스트 시에만 사용하고, 프로덕션에서는 주석 처리하세요.
      */
-    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 10000)
+    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 1000)
     fun createInitialSessionForTest() {
-        val startAt = LocalDateTime.now()
+        val now = LocalDateTime.now()
+        val startAt = now.plusMinutes(1)  // 1분 뒤 시작
         val endAt = startAt.plusHours(1)
 
         try {
             val sessionId = createSessionUseCase.execute(startAt, endAt)
-            logger.info("[TEST] 초기 세션 생성 완료: sessionId={}", sessionId)
+            logger.info("[TEST] 초기 세션 생성 완료: sessionId={}, startAt={}, endAt={}",
+                sessionId, startAt, endAt)
         } catch (e: Exception) {
             logger.warn("[TEST] 초기 세션 생성 실패: {}", e.message)
         }
