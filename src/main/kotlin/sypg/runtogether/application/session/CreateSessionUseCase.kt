@@ -31,10 +31,7 @@ class CreateSessionUseCase(
         endAt: LocalDateTime,
         createdBy: Long? = null
     ): Long {
-        // 시간 검증
-        require(!startAt.isBefore(LocalDateTime.now().minusMinutes(1))) {
-            "Start time must be in the present or future"
-        }
+        // 시간 검증 - endAt이 startAt보다 나중인지만 확인
         require(endAt.isAfter(startAt)) {
             "End time must be after start time"
         }
