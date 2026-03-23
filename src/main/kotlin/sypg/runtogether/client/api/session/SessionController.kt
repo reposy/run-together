@@ -25,11 +25,14 @@ class SessionController(
      * GET /api/sessions/active
      */
     @GetMapping("/active")
-    fun getActiveSession(): ResponseEntity<SessionResponse> {
-        val result = getActiveSessionUseCase.execute()
-            ?: return ResponseEntity.noContent().build()
+    fun getActiveSession(): ResponseEntity<List<SessionResponse>> {
+        val results = getActiveSessionUseCase.execute()
 
-        return ResponseEntity.ok(
+        if (results.isEmpty()) {
+            return ResponseEntity.ok(emptyList())
+        }
+
+        val sessions = results.map { result ->
             SessionResponse(
                 id = result.session.id,
                 status = result.session.status.name,
@@ -37,7 +40,9 @@ class SessionController(
                 endAt = result.session.endAt,
                 participantCount = result.participantCount
             )
-        )
+        }
+
+        return ResponseEntity.ok(sessions)
     }
 
     /**

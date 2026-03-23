@@ -20,12 +20,12 @@ class GetActiveSessionUseCase(
     /**
      * 현재 활성 세션 조회
      *
-     * READY 또는 RUNNING 상태의 세션 중 가장 최근 세션을 반환합니다.
+     * READY 또는 RUNNING 상태의 모든 세션을 반환합니다.
      *
-     * @return 활성 세션과 참가자 수 (세션이 없으면 null)
+     * @return 활성 세션 목록과 각 세션의 참가자 수 (빈 리스트 가능)
      */
     @Transactional(readOnly = true)
-    fun execute(): ActiveSessionResult? {
+    fun execute(): List<ActiveSessionResult> {
         // READY 상태 세션 조회
         val readySessions = runningSessionRepository.findByStatus(SessionStatus.READY)
 
@@ -36,20 +36,19 @@ class GetActiveSessionUseCase(
         val activeSessions = readySessions + runningSessions
 
         if (activeSessions.isEmpty()) {
-            return null
+            return emptyList()
         }
 
-        // 가장 최근 세션 (startAt이 가장 늦은 세션)
-        val latestSession = activeSessions.maxByOrNull { it.startAt }
-            ?: return null
-
-        // 참가자 수 조회
-        val participants = sessionParticipantRepository.findBySessionId(latestSession.id)
-
-        return ActiveSessionResult(
-            session = latestSession,
-            participantCount = participants.size
-        )
+        // 각 세션에 대해 참가자 수를 조회하여 결과 생성
+        return activeSessions
+            .sortedByDescending { it.startAt }  // 최신순 정렬
+            .map { session ->
+                val participants = sessionParticipantRepository.findBySessionId(session.id)
+                ActiveSessionResult(
+                    session = session,
+                    participantCount = participants.size
+                )
+            }
     }
 
     /**
