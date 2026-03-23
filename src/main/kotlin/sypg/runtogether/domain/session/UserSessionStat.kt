@@ -8,6 +8,9 @@ import java.time.LocalDateTime
     name = "user_session_stats",
     uniqueConstraints = [
         UniqueConstraint(columnNames = ["session_id", "user_id"])
+    ],
+    indexes = [
+        Index(name = "idx_session_distance", columnList = "session_id,total_distance DESC")
     ]
 )
 class UserSessionStat private constructor(
@@ -27,6 +30,9 @@ class UserSessionStat private constructor(
     @Column(nullable = false)
     var duration: Long,
 
+    @Column(name = "rank", nullable = true)
+    var rank: Int?,
+
     @Column(nullable = false)
     var updatedAt: LocalDateTime
 ) {
@@ -42,6 +48,7 @@ class UserSessionStat private constructor(
                 userId = userId,
                 totalDistance = 0.0,
                 duration = 0L,
+                rank = null,
                 updatedAt = LocalDateTime.now()
             )
         }
@@ -51,5 +58,9 @@ class UserSessionStat private constructor(
         this.totalDistance = distance
         this.duration = durationSeconds
         this.updatedAt = LocalDateTime.now()
+    }
+
+    fun updateRank(newRank: Int) {
+        this.rank = newRank
     }
 }
