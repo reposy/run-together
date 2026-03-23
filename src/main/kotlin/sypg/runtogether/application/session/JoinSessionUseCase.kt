@@ -39,9 +39,11 @@ class JoinSessionUseCase(
             "Session has already ended"
         }
 
-        // 이미 참가했는지 확인
-        require(!sessionParticipantRepository.existsBySessionIdAndUserId(sessionId, userId)) {
-            "User already joined this session"
+        // 이미 참가했는지 확인 (Idempotent 처리)
+        val existingParticipant = sessionParticipantRepository.findBySessionIdAndUserId(sessionId, userId)
+        if (existingParticipant != null) {
+            // 이미 참가한 경우 기존 participant ID 반환 (재참여 허용)
+            return existingParticipant.id
         }
 
         // 참가자 생성
@@ -51,12 +53,15 @@ class JoinSessionUseCase(
         )
         val savedParticipant = sessionParticipantRepository.save(participant)
 
-        // 통계 초기화
-        val stat = UserSessionStat.create(
-            sessionId = sessionId,
-            userId = userId
-        )
-        userSessionStatRepository.save(stat)
+        // 통계 초기화 (이미 있으면 생성 안 함)
+        val existingStat = userSessionStatRepository.findBySessionIdAndUserId(sessionId, userId)
+        if (existingStat == null) {
+            val stat = UserSessionStat.create(
+                sessionId = sessionId,
+                userId = userId
+            )
+            userSessionStatRepository.save(stat)
+        }
 
         return savedParticipant.id
     }
