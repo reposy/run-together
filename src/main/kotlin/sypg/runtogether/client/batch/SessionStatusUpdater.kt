@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import sypg.runtogether.domain.session.RunningSessionRepository
+import sypg.runtogether.domain.session.SessionParticipantRepository
 import sypg.runtogether.domain.session.SessionStatus
 import java.time.LocalDateTime
 
@@ -13,11 +14,12 @@ import java.time.LocalDateTime
  *
  * 세션의 시작/종료 시간에 맞춰 상태를 자동으로 전환합니다.
  * - READY → RUNNING (시작 시간 도달)
- * - RUNNING → FINISHED (종료 시간 도달)
+ * - RUNNING → FINISHED (종료 시간 도달, 모든 참가자도 FINISHED 처리)
  */
 @Component
 class SessionStatusUpdater(
-    private val runningSessionRepository: RunningSessionRepository
+    private val runningSessionRepository: RunningSessionRepository,
+    private val sessionParticipantRepository: SessionParticipantRepository
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -45,9 +47,21 @@ class SessionStatusUpdater(
             val sessionsToFinish = runningSessions.filter { it.endAt <= now }
 
             sessionsToFinish.forEach { session ->
+                // 세션 종료
                 session.finish()
                 runningSessionRepository.save(session)
-                logger.info("세션 종료: sessionId={}, endAt={}", session.id, session.endAt)
+
+                // 해당 세션의 모든 참가자를 FINISHED 처리
+                val participants = sessionParticipantRepository.findBySessionId(session.id)
+                var finishedCount = 0
+                participants.forEach { participant ->
+                    participant.finish()
+                    sessionParticipantRepository.save(participant)
+                    finishedCount++
+                }
+
+                logger.info("세션 종료: sessionId={}, endAt={}, 참가자 종료 처리={}",
+                    session.id, session.endAt, finishedCount)
             }
 
             if (sessionsToStart.isNotEmpty() || sessionsToFinish.isNotEmpty()) {

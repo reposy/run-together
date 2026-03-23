@@ -59,8 +59,13 @@ class SessionParticipant private constructor(
         status = ParticipantStatus.LEFT
     }
 
+    fun pause() {
+        require(status == ParticipantStatus.RUNNING) { "Participant must be RUNNING to pause" }
+        status = ParticipantStatus.JOINED
+    }
+
     fun finish() {
-        require(status == ParticipantStatus.RUNNING) { "Participant must be RUNNING to finish" }
+        // 세션 종료 시 호출 (관리자/스케줄러 전용)
         status = ParticipantStatus.FINISHED
     }
 }

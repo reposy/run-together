@@ -14,7 +14,7 @@ class SessionController(
     private val joinSessionUseCase: JoinSessionUseCase,
     private val startRunningUseCase: StartRunningUseCase,
     private val recordLocationUseCase: RecordLocationUseCase,
-    private val finishRunningUseCase: FinishRunningUseCase,
+    private val pauseRunningUseCase: PauseRunningUseCase,
     private val getMyStatsUseCase: GetMyStatsUseCase,
     private val getSessionRankingUseCase: GetSessionRankingUseCase,
     private val getActiveSessionUseCase: GetActiveSessionUseCase
@@ -173,15 +173,15 @@ class SessionController(
     }
 
     /**
-     * 러닝 종료
-     * POST /api/sessions/{sessionId}/finish
+     * 러닝 일시정지
+     * POST /api/sessions/{sessionId}/pause
      */
-    @PostMapping("/{sessionId}/finish")
-    fun finishRunning(
+    @PostMapping("/{sessionId}/pause")
+    fun pauseRunning(
         @PathVariable sessionId: Long,
         @RequestParam userId: Long
     ): ResponseEntity<String> {
-        finishRunningUseCase.execute(sessionId, userId)
-        return ResponseEntity.ok("Running finished successfully")
+        pauseRunningUseCase.execute(sessionId, userId)
+        return ResponseEntity.ok("Running paused successfully")
     }
 }
