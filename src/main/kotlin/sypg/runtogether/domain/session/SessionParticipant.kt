@@ -45,6 +45,11 @@ class SessionParticipant private constructor(
     }
 
     fun startRunning() {
+        // 이미 RUNNING 상태면 재입장으로 간주하고 성공 (Idempotent)
+        if (status == ParticipantStatus.RUNNING) {
+            return
+        }
+
         require(status == ParticipantStatus.JOINED) { "Participant must be JOINED to start running" }
         status = ParticipantStatus.RUNNING
     }
