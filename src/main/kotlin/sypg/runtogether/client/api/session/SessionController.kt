@@ -17,7 +17,8 @@ class SessionController(
     private val pauseRunningUseCase: PauseRunningUseCase,
     private val getMyStatsUseCase: GetMyStatsUseCase,
     private val getSessionRankingUseCase: GetSessionRankingUseCase,
-    private val getActiveSessionUseCase: GetActiveSessionUseCase
+    private val getActiveSessionUseCase: GetActiveSessionUseCase,
+    private val userRepository: sypg.runtogether.domain.user.UserRepository
 ) {
 
     /**
@@ -155,9 +156,11 @@ class SessionController(
         // 상위 순위
         val topRanking = getSessionRankingUseCase.execute(sessionId, limit)
             .mapIndexed { index, stat ->
+                val user = userRepository.findById(stat.userId)
                 RankingEntry(
                     rank = index + 1,
                     userId = stat.userId,
+                    nickname = user?.nickname ?: "Unknown",
                     totalDistance = stat.totalDistance,
                     duration = stat.duration
                 )

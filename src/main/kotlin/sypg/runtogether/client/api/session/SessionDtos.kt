@@ -68,6 +68,7 @@ data class MyStatsResponse(
 data class RankingEntry(
     val rank: Int,
     val userId: Long,
+    val nickname: String,
     val totalDistance: Double,
     val duration: Long
 )

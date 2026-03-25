@@ -45,6 +45,10 @@ class RecordLocationUseCase(
             "Participant must be RUNNING to record location"
         }
 
+        // 이전 위치 조회 (저장 전 - 가장 최근 1개만)
+        val previousLogs = locationLogRepository.findBySessionIdAndUserId(sessionId, userId)
+        val previousLog = previousLogs.maxByOrNull { it.recordedAt }
+
         // 위치 기록
         val locationLog = LocationLog.record(
             userId = userId,
@@ -54,29 +58,25 @@ class RecordLocationUseCase(
         )
         val savedLog = locationLogRepository.save(locationLog)
 
-        // 이전 위치 조회
-        val previousLogs = locationLogRepository.findBySessionIdAndUserId(sessionId, userId)
-        if (previousLogs.size >= 2) {
-            // 최근 두 개의 위치로 거리 계산
-            val sortedLogs = previousLogs.sortedByDescending { it.recordedAt }
-            val current = sortedLogs[0]
-            val previous = sortedLogs[1]
-            
-            val distance = distanceCalculator.calculateBetween(previous, current)
-            
+        // 이전 위치가 있으면 거리 계산 및 통계 업데이트
+        if (previousLog != null) {
+            // 두 위치 사이의 거리 계산 (미터)
+            val distance = distanceCalculator.calculateBetween(previousLog, savedLog)
+
             // 통계 업데이트
             val stat = userSessionStatRepository.findBySessionIdAndUserId(sessionId, userId)
                 ?: throw IllegalStateException("UserSessionStat not found")
-            
+
             // 누적 거리 계산
             val newTotalDistance = stat.totalDistance + distance
-            
-            // 소요 시간 계산 (초 단위)
+
+            // 전체 소요 시간 계산 (첫 위치부터 현재까지, 초 단위)
+            val firstLog = previousLogs.minByOrNull { it.recordedAt } ?: previousLog
             val duration = java.time.Duration.between(
-                previousLogs.minOf { it.recordedAt },
-                current.recordedAt
+                firstLog.recordedAt,
+                savedLog.recordedAt
             ).seconds
-            
+
             stat.updateStats(newTotalDistance, duration)
             userSessionStatRepository.save(stat)
         }
